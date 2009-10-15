@@ -106,13 +106,13 @@ def ListenToSocket():
 				SyncRequest()
 
 			if data[:13] == r'\sync_request':
-				#print 'got sync request'
+				dbg('got sync request')
 				SyncData()
 
 			if data[:10] == r'\sync_data':
-				#print 'got sync data'
+				dbg('got sync data')
 				TEMP_IP_ADDR_LIST = str(data[11:]).split('|')
-				#print TEMP_IP_ADDR_LIST
+				dbg(TEMP_IP_ADDR_LIST)
 				for temp_ip in TEMP_IP_ADDR_LIST:
 					if not temp_ip in IP_ADDRESS_LIST and temp_ip != LOCAL_IP:
 						IP_ADDRESS_LIST.append(temp_ip)
@@ -121,4 +121,14 @@ def ListenToSocket():
 
 		d.close()
 
+def SendSyncSuggestion():
+	SendText('\sync_suggestion')
+
+def SyncRequest():
+	SendText('\sync_request')
+
+def SyncData():
+	global IP_ADDRESS_LIST
+	dbg(('\sync_data ' + '|'.join(IP_ADDRESS_LIST)))
+	SendText('\sync_data ' + '|'.join(IP_ADDRESS_LIST))
 
