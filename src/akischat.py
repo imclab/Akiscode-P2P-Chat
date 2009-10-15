@@ -48,12 +48,6 @@ import os, thread, socket, traceback, urllib
 #-------------------CONSTANTS-------------------------
 
 LOCAL_IP = socket.gethostbyname(socket.gethostname()) # Gets local IP address
-GLOBAL_IP = ''
-try:
-	GLOBAL_IP = urllib.urlopen('http://akiscode.com/ip_addr.php').read() # Gets Global IP
-except:
-	GLOBAL_IP = '---'
-
 
 IP_ADDRESS_LIST = [] # Holds all the IP addresses
 
@@ -99,7 +93,7 @@ def ListenToSocket():
 	global LOCAL_IP
 	global IP_ADDRESS_LIST
 
-	PrintToScreen(('Local IP:'+LOCAL_IP, 'Global IP:'+GLOBAL_IP, 'Port:'+str(PORT), IP_ADDRESS_LIST))
+	PrintToScreen(('Local IP:'+LOCAL_IP, 'Port:'+str(PORT), IP_ADDRESS_LIST))
 
 	while 1:
 		d = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -168,7 +162,7 @@ def Input(str):
 
 if __name__ == "__main__":
 	thread.start_new_thread(ListenToSocket, ())
-
 	while 1:
 		Input(raw_input().rstrip())
+		
 
