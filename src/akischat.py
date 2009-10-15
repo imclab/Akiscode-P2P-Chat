@@ -43,11 +43,17 @@
 # Copyright (C) 2009 Stephen Akiki. All rights reserved.
 #-------------------------------------------------------------------------------------------------
 
-import os, thread, socket, traceback
+import os, thread, socket, traceback, urllib
 
 #-------------------CONSTANTS-------------------------
 
 LOCAL_IP = socket.gethostbyname(socket.gethostname()) # Gets local IP address
+GLOBAL_IP = ''
+try:
+	GLOBAL_IP = urllib.urlopen('http://akiscode.com/ip_addr').read() # Gets Global IP
+except:
+	GLOBAL_IP = '---'
+
 
 IP_ADDRESS_LIST = [] # Holds all the IP addresses
 
@@ -55,6 +61,8 @@ PORT = 7721 # Port to send packets on
 
 DEBUG = 1
 #-----------------------------------------------------
+
+
 
 # Used to print out info that I need during debugging.
 def dbg(string):
@@ -85,12 +93,13 @@ def SendText(str):
 			else:
 				pass
 
+
 def ListenToSocket():
 	global PORT
 	global LOCAL_IP
 	global IP_ADDRESS_LIST
 
-	PrintToScreen((LOCAL_IP, PORT, IP_ADDRESS_LIST))
+	PrintToScreen(('Local IP:'+LOCAL_IP, 'Global IP:'+GLOBAL_IP, 'Port:'+str(PORT), IP_ADDRESS_LIST))
 
 	while 1:
 		d = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -106,13 +115,13 @@ def ListenToSocket():
 				SyncRequest()
 
 			if data[:13] == r'\sync_request':
-				dbg('got sync request')
+				dbg('got sync request') # Debug Only
 				SyncData()
 
 			if data[:10] == r'\sync_data':
 				dbg('got sync data')
 				TEMP_IP_ADDR_LIST = str(data[11:]).split('|')
-				dbg(TEMP_IP_ADDR_LIST)
+				dbg(TEMP_IP_ADDR_LIST) # Debug Only
 				for temp_ip in TEMP_IP_ADDR_LIST:
 					if not temp_ip in IP_ADDRESS_LIST and temp_ip != LOCAL_IP:
 						IP_ADDRESS_LIST.append(temp_ip)
@@ -129,7 +138,7 @@ def SyncRequest():
 
 def SyncData():
 	global IP_ADDRESS_LIST
-	dbg(('\sync_data ' + '|'.join(IP_ADDRESS_LIST)))
+	dbg(('\sync_data ' + '|'.join(IP_ADDRESS_LIST)))  # Debug Only
 	SendText('\sync_data ' + '|'.join(IP_ADDRESS_LIST))
 
 
@@ -143,11 +152,11 @@ def Input(str):
 			SendSyncSuggestion()
 			return 0
 
-	if str[:3] == r'\ip':
+	if str[:3] == r'\ip': # Display all ip address you currently have
 		PrintToScreen(IP_ADDRESS_LIST)
 		return 0
 
-	if str[:7] == r'\whoami':
+	if str[:7] == r'\whoami': # Whats your IP address?
 		PrintToScreen(LOCAL_IP)
 		return 0
 
