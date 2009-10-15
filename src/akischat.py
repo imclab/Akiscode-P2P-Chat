@@ -50,7 +50,7 @@ import os, thread, socket, traceback, urllib
 LOCAL_IP = socket.gethostbyname(socket.gethostname()) # Gets local IP address
 GLOBAL_IP = ''
 try:
-	GLOBAL_IP = urllib.urlopen('http://akiscode.com/ip_addr').read() # Gets Global IP
+	GLOBAL_IP = urllib.urlopen('http://akiscode.com/ip_addr.php').read() # Gets Global IP
 except:
 	GLOBAL_IP = '---'
 
