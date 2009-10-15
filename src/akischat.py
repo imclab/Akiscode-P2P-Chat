@@ -43,3 +43,16 @@
 # Copyright (C) 2009 Stephen Akiki. All rights reserved.
 #-------------------------------------------------------------------------------------------------
 
+
+#-------------------CONSTANTS-------------------------
+
+LOCAL_IP = socket.gethostbyname(socket.gethostname())
+
+IP_ADDRESS_LIST = []
+
+PORT = 7721 # Port to send packets on
+
+#-----------------------------------------------------
+
+
+
