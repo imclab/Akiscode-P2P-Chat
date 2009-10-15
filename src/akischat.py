@@ -157,3 +157,9 @@ def Input(str):
 
 	SendText(str)
 
+if __name__ == "__main__":
+	thread.start_new_thread(ListenToSocket, ())
+
+	while 1:
+		Input(raw_input().rstrip())
+
