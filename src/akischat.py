@@ -132,3 +132,28 @@ def SyncData():
 	dbg(('\sync_data ' + '|'.join(IP_ADDRESS_LIST)))
 	SendText('\sync_data ' + '|'.join(IP_ADDRESS_LIST))
 
+
+def Input(str):
+	global LOCAL_IP
+	global IP_ADDRESS_LIST
+
+	if str[:4] == r'\add':
+		if not str[5:] in IP_ADDRESS_LIST and str[5:] != LOCAL_IP:
+			IP_ADDRESS_LIST.append(str[5:])
+			SendSyncSuggestion()
+			return 0
+
+	if str[:3] == r'\ip':
+		PrintToScreen(IP_ADDRESS_LIST)
+		return 0
+
+	if str[:7] == r'\whoami':
+		PrintToScreen(LOCAL_IP)
+		return 0
+
+	if str[:16] == r'\sync_suggestion' or str[:13] == r'\sync_request' or str[:10] == r'\sync_data':
+		return 0
+
+
+	SendText(str)
+
