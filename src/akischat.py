@@ -85,5 +85,40 @@ def SendText(str):
 			else:
 				pass
 
+def ListenToSocket():
+	global PORT
+	global LOCAL_IP
+	global IP_ADDRESS_LIST
+
+	PrintToScreen((LOCAL_IP, PORT, IP_ADDRESS_LIST))
+
+	while 1:
+		d = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+		d.bind(('', PORT))
+		while 1:
+			data, addr = d.recvfrom(1024)
+			if not data: break
+			if not addr[0] in IP_ADDRESS_LIST and addr[0] != LOCAL_IP:
+				IP_ADDRESS_LIST.append(addr[0])
+				SendSyncSuggestion()
+
+			if data[:16] == r'\sync_suggestion':
+				SyncRequest()
+
+			if data[:13] == r'\sync_request':
+				#print 'got sync request'
+				SyncData()
+
+			if data[:10] == r'\sync_data':
+				#print 'got sync data'
+				TEMP_IP_ADDR_LIST = str(data[11:]).split('|')
+				#print TEMP_IP_ADDR_LIST
+				for temp_ip in TEMP_IP_ADDR_LIST:
+					if not temp_ip in IP_ADDRESS_LIST and temp_ip != LOCAL_IP:
+						IP_ADDRESS_LIST.append(temp_ip)
+
+			PrintToScreen(addr[0] + ': ' + str(data))
+
+		d.close()
 
 
