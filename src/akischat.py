@@ -119,6 +119,13 @@ def ListenToSocket():
 				PrintToScreen(NICKNAME_DICT[addr[0]] + ' has joined.')
 				continue
 
+			if data[:5] == r'\quit':
+				vlock.acquire()
+				IP_ADDRESS_LIST.remove(addr[0])
+				del NICKNAME_DICT[addr[0]]
+				vlock.release()
+				
+
 			if data[:13] == r'\sync_request':
 				dbg('got sync request') # Debug Only
 				SyncData()
@@ -180,6 +187,10 @@ def Input(str):
 			vlock.release() # Release lock
 			SendSyncSuggestion()
 			return 0
+
+	if str[:] == r'\quit':
+		SendText(NICKNAME_DICT[LOCAL_IP] + ' has quit.')
+		return 0
 
 	if str[:5] == r'\nick':
 		if len(IP_ADDRESS_LIST) == 0:
