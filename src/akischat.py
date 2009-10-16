@@ -51,6 +51,8 @@ LOCAL_IP = socket.gethostbyname(socket.gethostname()) # Gets local IP address
 
 IP_ADDRESS_LIST = [] # Holds all the IP addresses
 
+vlock = thread.allocate_lock() # Thread lock for IP_ADDRESS_LIST
+
 PORT = 7721 # Port to send packets on
 
 DEBUG = 1
@@ -92,6 +94,7 @@ def ListenToSocket():
 	global PORT
 	global LOCAL_IP
 	global IP_ADDRESS_LIST
+	global vlock
 
 	PrintToScreen(('Local IP:'+LOCAL_IP, 'Port:'+str(PORT), IP_ADDRESS_LIST))
 
@@ -102,7 +105,9 @@ def ListenToSocket():
 			data, addr = d.recvfrom(1024)
 			if not data: break
 			if not addr[0] in IP_ADDRESS_LIST and addr[0] != LOCAL_IP:
+				vlock.acquire()  # Lock global list to not corrupt memory
 				IP_ADDRESS_LIST.append(addr[0])
+				vlock.release() # Release lock
 				SendSyncSuggestion()
 
 			if data[:16] == r'\sync_suggestion':
@@ -118,7 +123,9 @@ def ListenToSocket():
 				dbg(TEMP_IP_ADDR_LIST) # Debug Only
 				for temp_ip in TEMP_IP_ADDR_LIST:
 					if not temp_ip in IP_ADDRESS_LIST and temp_ip != LOCAL_IP:
+						vlock.acquire()  # Lock global list to not corrupt memory
 						IP_ADDRESS_LIST.append(temp_ip)
+						vlock.release() # Release lock
 
 			PrintToScreen(addr[0] + ': ' + str(data))
 
@@ -142,7 +149,9 @@ def Input(str):
 
 	if str[:4] == r'\add':
 		if not str[5:] in IP_ADDRESS_LIST and str[5:] != LOCAL_IP:
+			vlock.acquire() # Lock global list to not corrupt memory
 			IP_ADDRESS_LIST.append(str[5:])
+			vlock.release() # Release lock
 			SendSyncSuggestion()
 			return 0
 
