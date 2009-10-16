@@ -97,6 +97,7 @@ def ListenToSocket():
 	global LOCAL_IP
 	global IP_ADDRESS_LIST
 	global vlock
+	global NICKNAME_DICT
 
 	PrintToScreen(('Nick: '+NICKNAME_DICT[LOCAL_IP], 'Local IP:'+LOCAL_IP, 'Port:'+str(PORT), IP_ADDRESS_LIST))
 
@@ -109,6 +110,7 @@ def ListenToSocket():
 			if not addr[0] in IP_ADDRESS_LIST and addr[0] != LOCAL_IP:
 				vlock.acquire()  # Lock global list to not corrupt memory
 				IP_ADDRESS_LIST.append(addr[0])
+				NICKNAME_DICT[addr[0]] = addr[0]
 				vlock.release() # Release lock
 				SendSyncSuggestion()
 
@@ -129,7 +131,21 @@ def ListenToSocket():
 						IP_ADDRESS_LIST.append(temp_ip)
 						vlock.release() # Release lock
 
-			PrintToScreen(addr[0] + ': ' + str(data))
+			if data[:10] == r'\nick_data':
+				dbg('got nick sync data')
+				TEMP_NICKNAME_LIST = str(data[11:]).split(';')
+				dbg('TEMP_NICKNAME_LIST = ' + str(TEMP_NICKNAME_LIST))
+				for temp_nick in TEMP_NICKNAME_LIST:
+					dbg('temp_nick = '+ temp_nick)
+					small_list = temp_nick.split('|')
+					dbg(small_list)
+					dbg('key: ' + small_list[0] + 'value: ' + small_list[1])
+					vlock.acquire() # lock thread access to variable
+					NICKNAME_DICT[small_list[0]] = small_list[1] # IP Address key, actual value for values
+					vlock.release() # release lock
+
+
+			PrintToScreen(NICKNAME_DICT[addr[0]] + ': ' + str(data))
 
 		d.close()
 
@@ -143,22 +159,29 @@ def SyncData():
 	global IP_ADDRESS_LIST
 	dbg(('\sync_data ' + '|'.join(IP_ADDRESS_LIST)))  # Debug Only
 	SendText('\sync_data ' + '|'.join(IP_ADDRESS_LIST))
-
+	dbg((r'\nick_data ' + ";".join(["%s|%s" % (k, v) for k, v in NICKNAME_DICT.items()])))
+	SendText(r'\nick_data ' + ";".join(["%s|%s" % (k, v) for k, v in NICKNAME_DICT.items()]))
 
 def Input(str):
 	global LOCAL_IP
 	global IP_ADDRESS_LIST
+	global NICKNAME_DICT
 
 	if str[:4] == r'\add':
 		if not str[5:] in IP_ADDRESS_LIST and str[5:] != LOCAL_IP:
 			vlock.acquire() # Lock global list to not corrupt memory
 			IP_ADDRESS_LIST.append(str[5:])
+			NICKNAME_DICT[str[5:]] = str[5:]
 			vlock.release() # Release lock
 			SendSyncSuggestion()
 			return 0
 
 	if str[:5] == r'\nick':
-		NICKNAME_DICT[LOCAL_IP] = str[6:]
+		if len(IP_ADDRESS_LIST) == 0:
+			PrintToScreen('You need to connect to someone first')
+		else:
+			NICKNAME_DICT[LOCAL_IP] = str[6:]
+			SendSyncSuggestion()
 
 	if str[:3] == r'\ip': # Display all ip address you currently have
 		PrintToScreen(IP_ADDRESS_LIST)
@@ -166,6 +189,7 @@ def Input(str):
 
 	if str[:7] == r'\whoami': # Whats your IP address?
 		PrintToScreen('Nick: ' + NICKNAME_DICT[LOCAL_IP] + ' Local IP: ' +LOCAL_IP)
+		print NICKNAME_DICT
 		return 0
 
 	if str[:16] == r'\sync_suggestion' or str[:13] == r'\sync_request' or str[:10] == r'\sync_data':
