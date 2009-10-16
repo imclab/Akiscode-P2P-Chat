@@ -53,6 +53,8 @@ IP_ADDRESS_LIST = [] # Holds all the IP addresses
 
 vlock = thread.allocate_lock() # Thread lock for IP_ADDRESS_LIST
 
+NICKNAME_DICT = {}
+
 PORT = 7721 # Port to send packets on
 
 DEBUG = 1
