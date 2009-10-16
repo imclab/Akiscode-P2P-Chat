@@ -53,7 +53,7 @@ IP_ADDRESS_LIST = [] # Holds all the IP addresses
 
 vlock = thread.allocate_lock() # Thread lock for IP_ADDRESS_LIST
 
-NICKNAME_DICT = {}
+NICKNAME_DICT = {LOCAL_IP:LOCAL_IP}
 
 PORT = 7721 # Port to send packets on
 
@@ -98,7 +98,7 @@ def ListenToSocket():
 	global IP_ADDRESS_LIST
 	global vlock
 
-	PrintToScreen(('Local IP:'+LOCAL_IP, 'Port:'+str(PORT), IP_ADDRESS_LIST))
+	PrintToScreen(('Nick: '+NICKNAME_DICT[LOCAL_IP], 'Local IP:'+LOCAL_IP, 'Port:'+str(PORT), IP_ADDRESS_LIST))
 
 	while 1:
 		d = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -157,12 +157,15 @@ def Input(str):
 			SendSyncSuggestion()
 			return 0
 
+	if str[:5] == r'\nick':
+		NICKNAME_DICT[LOCAL_IP] = str[6:]
+
 	if str[:3] == r'\ip': # Display all ip address you currently have
 		PrintToScreen(IP_ADDRESS_LIST)
 		return 0
 
 	if str[:7] == r'\whoami': # Whats your IP address?
-		PrintToScreen(LOCAL_IP)
+		PrintToScreen('Nick: ' + NICKNAME_DICT[LOCAL_IP] + ' Local IP: ' +LOCAL_IP)
 		return 0
 
 	if str[:16] == r'\sync_suggestion' or str[:13] == r'\sync_request' or str[:10] == r'\sync_data':
