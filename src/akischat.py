@@ -116,10 +116,13 @@ def ListenToSocket():
 
 			if data[:16] == r'\sync_suggestion':
 				SyncRequest()
+				PrintToScreen(NICKNAME_DICT[addr[0]] + ' has joined.')
+				continue
 
 			if data[:13] == r'\sync_request':
 				dbg('got sync request') # Debug Only
 				SyncData()
+				continue	
 
 			if data[:10] == r'\sync_data':
 				dbg('got sync data')
@@ -130,6 +133,7 @@ def ListenToSocket():
 						vlock.acquire()  # Lock global list to not corrupt memory
 						IP_ADDRESS_LIST.append(temp_ip)
 						vlock.release() # Release lock
+				continue
 
 			if data[:10] == r'\nick_data':
 				dbg('got nick sync data')
@@ -143,7 +147,7 @@ def ListenToSocket():
 					vlock.acquire() # lock thread access to variable
 					NICKNAME_DICT[small_list[0]] = small_list[1] # IP Address key, actual value for values
 					vlock.release() # release lock
-
+				continue
 
 			PrintToScreen(NICKNAME_DICT[addr[0]] + ': ' + str(data))
 
