@@ -22,7 +22,7 @@
 #    If you want to use this code (in compliance with the GPL) then you should
 #    include this somewhere in your code comments header:
 #
-#    Thanks to Stephen Akiki (http://akiscode.com/code/chat) for sparknotes downloader code
+#    Thanks to Stephen Akiki (http://akiscode.com/code/chat) for peer-to-peer chat code
 #-------------------------------------------------------------------------------------------------
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
