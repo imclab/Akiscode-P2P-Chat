@@ -45,8 +45,6 @@
 
 import os, thread, socket, traceback, urllib
 
-import chatgui as GUI # Custom Library
-
 #-------------------CONSTANTS-------------------------
 
 LOCAL_IP = socket.gethostbyname(socket.gethostname()) # Gets local IP address
@@ -228,9 +226,21 @@ def Input(str):
 
 	SendText(str)
 
+def MakeMainMenu():
+	global LOCAL_IP
+	root = Tk()
+	root.title(title + '(' + versionstring + ') - Stephen Akiki')
+	root.minsize(500, 400)
+
+	w = Label(root, text=LOCAL_IP)
+	w.grid(row=0)
+
+
+	root.mainloop()
+
 if __name__ == "__main__":
 	thread.start_new_thread(ListenToSocket, ())
-	GUI.MakeMainMenu()
+	MakeMainMenu()
 	while 1:
 		Input(raw_input().rstrip())
 		
