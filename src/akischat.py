@@ -60,6 +60,17 @@ NICKNAME_DICT = {LOCAL_IP:LOCAL_IP}
 PORT = 7721 # Port to send packets on
 
 DEBUG = 1
+
+#----------------------GUI STUFF----------------------
+
+from Tkinter import *
+import os, platform
+
+title = 'Akiscode Chat'
+version = '100'
+versionstring = 'v1.0.0'
+
+
 #-----------------------------------------------------
 
 
