@@ -45,6 +45,8 @@
 
 import os, thread, socket, traceback, urllib
 
+import chatgui as GUI # Custom Library
+
 #-------------------CONSTANTS-------------------------
 
 LOCAL_IP = socket.gethostbyname(socket.gethostname()) # Gets local IP address
@@ -190,6 +192,7 @@ def Input(str):
 
 	if str[:] == r'\quit':
 		SendText(NICKNAME_DICT[LOCAL_IP] + ' has quit.')
+		sys.exit(1)
 		return 0
 
 	if str[:5] == r'\nick':
@@ -216,6 +219,7 @@ def Input(str):
 
 if __name__ == "__main__":
 	thread.start_new_thread(ListenToSocket, ())
+	GUI.MakeMainMenu()
 	while 1:
 		Input(raw_input().rstrip())
 		
