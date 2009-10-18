@@ -45,10 +45,17 @@
 
 import os, thread, socket, traceback, urllib, sys, getopt
 
+import RSA # Custom Lib
+
 #-------------------CONSTANTS-------------------------
 
 def usage():
 	print 'Usage'
+
+# This is a wrapper function so we can abstract away how we print the characters, either to the 
+#   command line or the GUI
+def PrintToScreen(str):
+	print str
 
 LOCAL_IP = socket.gethostbyname(socket.gethostname()) # Gets local IP address
 
@@ -64,11 +71,31 @@ DEBUG = 1
 
 GUI_FLAG = 0
 
+
 try:
 	if sys.argv[1] == '--GUI' or sys.argv[1] == '-g':
 		GUI_FLAG = 1
 except:
 	print 'Command-Line Verson'
+
+PrintToScreen('Making RSA Key...')
+k = RSA.keygen(61, 53)
+PubKey = (k[0], k[1])
+PrivateKey = (k[0], k[2])
+
+PubKey_OtherGuy = () # The public key of the other guy, initially set to 0
+PubKey_string = k[3]
+
+def encrypt(str):
+	global PubKey_OtherGuy
+	if len(PubKey_OtherGuy) == 0: return;
+	ciphertext = RSA.rsa(str, PubKey_OtherGuy, None)
+	return ciphertext
+
+def decrypt(str):
+	global PrivateKey
+	cleartext = RSA.rsa(ciphertext, None, PrivateKey, decrypt=True)
+	return cleartext
 		
 
 
@@ -84,7 +111,9 @@ versionstring = 'v1.0.0'
 
 #-----------------------------------------------------
 
-
+def GetInput():
+	data = raw_input().rstrip()
+	return data
 
 # Used to print out info that I need during debugging.
 def dbg(string):
@@ -94,10 +123,6 @@ def dbg(string):
 	else:
 		pass
 
-# This is a wrapper function so we can abstract away how we print the characters, either to the 
-#   command line or the GUI
-def PrintToScreen(str):
-	print str
 
 
 def SendText(str):
@@ -182,6 +207,14 @@ def ListenToSocket():
 					vlock.release() # release lock
 				continue
 
+			if data[:7] == r'\pubkey':
+				global PubKey_OtherGuy
+				PubKey_OtherGuy = tuple(map(int, data[8:-1].split(',')))
+
+			if data[:10] == r'\encrypted':
+				data = decrypt(data)
+				PrintToScreen(NICKNAME_DICT[addr[0]] + '**: ' + str(data))
+
 			PrintToScreen(NICKNAME_DICT[addr[0]] + ': ' + str(data))
 
 		d.close()
@@ -204,6 +237,9 @@ def Input(str):
 	global IP_ADDRESS_LIST
 	global NICKNAME_DICT
 	global vlock
+	global PubKey
+	global PubKey_string
+	global PORT
 
 	if str[:4] == r'\add':
 		if not str[5:] in IP_ADDRESS_LIST and str[5:] != LOCAL_IP:
@@ -214,7 +250,29 @@ def Input(str):
 			SendSyncSuggestion()
 			return 0
 
-	if str[:] == r'\quit':
+	if str[:5] == r'\eadd': # Encrypted Add
+		try:
+			d = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+			d.sendto('\pubkey'+PubKey_string, (str[6:], PORT))
+			d.close()
+		except:
+
+			print str('\pubkey'+ PubKey_string, str[6:], PORT)
+			PrintToScreen('Could not send to: ' + str[6:])
+			return 0
+		while 1:
+			EInput = GetInput()
+			try:
+				d = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+				d.sendto('\encrypted'+encrypt(EInput), (str[6:], PORT))
+				d.close()
+			except:
+				PrintToScreen('Could not send encrypted message to: ' + str[6:])
+				return 0
+		return 0
+
+	if str[:5] == r'\quit':
 		SendText(NICKNAME_DICT[LOCAL_IP] + ' has quit.')
 		sys.exit(1)
 		return 0
@@ -233,11 +291,6 @@ def Input(str):
 	if str[:7] == r'\whoami': # Whats your IP address?
 		PrintToScreen('Nick: ' + NICKNAME_DICT[LOCAL_IP] + ' Local IP: ' +LOCAL_IP)
 		print NICKNAME_DICT
-		return 0
-
-	if str[:16] == r'\sync_suggestion' or str[:13] == r'\sync_request' or str[:10] == r'\sync_data':
-		return 0
-
 
 	SendText(str)
 
@@ -259,6 +312,6 @@ if __name__ == "__main__":
 		MakeMainMenu()
 	else:
 		while 1:
-			Input(raw_input().rstrip())
+			Input(GetInput())
 		
 
