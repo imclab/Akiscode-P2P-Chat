@@ -43,9 +43,12 @@
 # Copyright (C) 2009 Stephen Akiki. All rights reserved.
 #-------------------------------------------------------------------------------------------------
 
-import os, thread, socket, traceback, urllib,sys
+import os, thread, socket, traceback, urllib, sys, getopt
 
 #-------------------CONSTANTS-------------------------
+
+def usage():
+	print 'Usage'
 
 LOCAL_IP = socket.gethostbyname(socket.gethostname()) # Gets local IP address
 
@@ -61,10 +64,13 @@ DEBUG = 1
 
 GUI_FLAG = 0
 
-if sys.argv[1] == '--GUI':
-	GUI_FLAG = 1
-else:
-	pass
+try:
+	if sys.argv[1] == '--GUI' or sys.argv[1] == '-g':
+		GUI_FLAG = 1
+except:
+	print 'Command-Line Verson'
+		
+
 
 #----------------------GUI STUFF----------------------
 
@@ -116,8 +122,10 @@ def ListenToSocket():
 	global IP_ADDRESS_LIST
 	global vlock
 	global NICKNAME_DICT
+	global GUI_FLAG
 
-	PrintToScreen(('Nick: '+NICKNAME_DICT[LOCAL_IP], 'Local IP:'+LOCAL_IP, 'Port:'+str(PORT), IP_ADDRESS_LIST))
+	if GUI_FLAG != 1:
+		PrintToScreen(('Nick: '+NICKNAME_DICT[LOCAL_IP], 'Local IP:'+LOCAL_IP, 'Port:'+str(PORT), IP_ADDRESS_LIST))
 
 	while 1:
 		d = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
