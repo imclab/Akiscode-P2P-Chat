@@ -90,12 +90,12 @@ def encrypt(str):
 	global PubKey_OtherGuy
 	if len(PubKey_OtherGuy) == 0: return;
 	ciphertext = RSA.rsa(str, PubKey_OtherGuy, None)
-	return ciphertext
+	return str(ciphertext)
 
 def decrypt(str):
 	global PrivateKey
 	cleartext = RSA.rsa(ciphertext, None, PrivateKey, decrypt=True)
-	return cleartext
+	return str(cleartext)
 		
 
 
@@ -113,7 +113,7 @@ versionstring = 'v1.0.0'
 
 def GetInput():
 	data = raw_input().rstrip()
-	return data
+	return str(data)
 
 # Used to print out info that I need during debugging.
 def dbg(string):
@@ -227,15 +227,16 @@ def ListenToSocket():
 
 				while 1:
 					EInput = GetInput()
+					EEInput = str(encrypt(EInput))
 					if EInput[:5] == r'\quit':
 						return 0
 					try:
 						d = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-						d.sendto('\encrypted'+encrypt(EInput), (str[6:], PORT))
+						d.sendto('\encrypted'+ EEInput, (addr[0], PORT))
 						d.close()
 					except:
-						PrintToScreen('Could not send encrypted message to: ' + str[6:])
+						PrintToScreen('Could not send encrypted message to1: ' + addr[0])
 						return 0
 
 				return 0
@@ -257,7 +258,9 @@ def SyncData():
 	dbg((r'\nick_data ' + ";".join(["%s|%s" % (k, v) for k, v in NICKNAME_DICT.items()])))
 	SendText(r'\nick_data ' + ";".join(["%s|%s" % (k, v) for k, v in NICKNAME_DICT.items()]))
 
-def Input(str):
+
+
+def Input(input_string):
 	global LOCAL_IP
 	global IP_ADDRESS_LIST
 	global NICKNAME_DICT
@@ -266,60 +269,63 @@ def Input(str):
 	global PubKey_string
 	global PORT
 
-	if str[:4] == r'\add':
-		if not str[5:] in IP_ADDRESS_LIST and str[5:] != LOCAL_IP:
+	if input_string[:4] == r'\add':
+		if not input_string[5:] in IP_ADDRESS_LIST and input_string[5:] != LOCAL_IP:
 			vlock.acquire() # Lock global list to not corrupt memory
-			IP_ADDRESS_LIST.append(str[5:])
-			NICKNAME_DICT[str[5:]] = str[5:]
+			IP_ADDRESS_LIST.append(input_string[5:])
+			NICKNAME_DICT[input_string[5:]] = input_string[5:]
 			vlock.release() # Release lock
 			SendSyncSuggestion()
 			return 0
 
-	if str[:5] == r'\eadd': # Encrypted Add
+	if input_string[:5] == r'\eadd': # Encrypted Add
 		try:
 			d = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-			d.sendto('\pubkey'+PubKey_string, (str[6:], PORT))
+			d.sendto('\pubkey'+PubKey_string, (input_string[6:], PORT))
 			d.close()
 		except:
 
-			print str('\pubkey'+ PubKey_string, str[6:], PORT)
-			PrintToScreen('Could not send to: ' + str[6:])
+			print str('\pubkey'+ PubKey_string, input_string[6:], PORT)
+			PrintToScreen('Could not send to: ' + input_string[6:])
 			return 0
 		while 1:
 			EInput = GetInput()
+			EEInput = str(encrypt(EInput))
 			if EInput[:5] == r'\quit':
 				return 0
 			try:
 				d = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-
-				d.sendto('\encrypted'+encrypt(EInput), (str[6:], PORT))
+				d.sendto(r'\encrypted'+ EEInput, (input_string[6:], PORT))
 				d.close()
 			except:
-				PrintToScreen('Could not send encrypted message to: ' + str[6:])
+				PrintToScreen('Could not send encrypted message to2: ' + input_string[6:])
+				traceback.print_exc()
 				return 0
 		return 0
 
-	if str[:5] == r'\quit':
+	if input_string[:5] == r'\quit':
 		SendText(NICKNAME_DICT[LOCAL_IP] + ' has quit.')
 		sys.exit(1)
 		return 0
 
-	if str[:5] == r'\nick':
+	if input_string[:5] == r'\nick':
 		if len(IP_ADDRESS_LIST) == 0:
 			PrintToScreen('You need to connect to someone first')
 		else:
-			NICKNAME_DICT[LOCAL_IP] = str[6:]
+			NICKNAME_DICT[LOCAL_IP] = input_string[6:]
 			SendSyncSuggestion()
 
-	if str[:3] == r'\ip': # Display all ip address you currently have
+	if input_string[:3] == r'\ip': # Display all ip address you currently have
 		PrintToScreen(IP_ADDRESS_LIST)
 		return 0
 
-	if str[:7] == r'\whoami': # Whats your IP address?
+	if input_string[:7] == r'\whoami': # Whats your IP address?
 		PrintToScreen('Nick: ' + NICKNAME_DICT[LOCAL_IP] + ' Local IP: ' +LOCAL_IP)
 		print NICKNAME_DICT
 
-	SendText(str)
+	SendText(input_string)
+
+
 
 def MakeMainMenu():
 	global LOCAL_IP
