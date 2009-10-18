@@ -211,9 +211,33 @@ def ListenToSocket():
 				global PubKey_OtherGuy
 				PubKey_OtherGuy = tuple(map(int, data[8:-1].split(',')))
 
+
 			if data[:10] == r'\encrypted':
 				data = decrypt(data)
 				PrintToScreen(NICKNAME_DICT[addr[0]] + '**: ' + str(data))
+
+				try:
+					d = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+					d.sendto('\pubkey'+PubKey_string, (addr[0], PORT))
+					d.close()
+				except:
+
+					print str('\pubkey'+ PubKey_string, addr[0], PORT)
+					PrintToScreen('Could not re-send to: ' + addr[0])
+
+				while 1:
+					EInput = GetInput()
+					if EInput[:5] == r'\quit':
+						return 0
+					try:
+						d = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+						d.sendto('\encrypted'+encrypt(EInput), (str[6:], PORT))
+						d.close()
+					except:
+						PrintToScreen('Could not send encrypted message to: ' + str[6:])
+						return 0					
+				return 0
 
 			PrintToScreen(NICKNAME_DICT[addr[0]] + ': ' + str(data))
 
@@ -262,6 +286,8 @@ def Input(str):
 			return 0
 		while 1:
 			EInput = GetInput()
+			if EInput[:5] == r'\quit':
+				return 0
 			try:
 				d = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
