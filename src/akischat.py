@@ -86,15 +86,15 @@ PrivateKey = (k[0], k[2])
 PubKey_OtherGuy = () # The public key of the other guy, initially set to 0
 PubKey_string = k[3]
 
-def encrypt(str):
+def encrypt(string):
 	global PubKey_OtherGuy
 	if len(PubKey_OtherGuy) == 0: return;
-	ciphertext = RSA.rsa(str, PubKey_OtherGuy, None)
+	ciphertext = RSA.rsa(string, PubKey_OtherGuy, None)
 	return str(ciphertext)
 
-def decrypt(str):
+def decrypt(string):
 	global PrivateKey
-	cleartext = RSA.rsa(ciphertext, None, PrivateKey, decrypt=True)
+	cleartext = RSA.rsa(string, None, PrivateKey, decrypt=True)
 	return str(cleartext)
 		
 
