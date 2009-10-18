@@ -236,7 +236,8 @@ def ListenToSocket():
 						d.close()
 					except:
 						PrintToScreen('Could not send encrypted message to: ' + str[6:])
-						return 0					
+						return 0
+
 				return 0
 
 			PrintToScreen(NICKNAME_DICT[addr[0]] + ': ' + str(data))
