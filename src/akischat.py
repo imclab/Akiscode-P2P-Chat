@@ -43,7 +43,7 @@
 # Copyright (C) 2009 Stephen Akiki. All rights reserved.
 #-------------------------------------------------------------------------------------------------
 
-import os, thread, socket, traceback, urllib
+import os, thread, socket, traceback, urllib,sys
 
 #-------------------CONSTANTS-------------------------
 
@@ -58,6 +58,13 @@ NICKNAME_DICT = {LOCAL_IP:LOCAL_IP}
 PORT = 7721 # Port to send packets on
 
 DEBUG = 1
+
+GUI_FLAG = 0
+
+if sys.argv[1] == '--GUI':
+	GUI_FLAG = 1
+else:
+	pass
 
 #----------------------GUI STUFF----------------------
 
@@ -240,8 +247,10 @@ def MakeMainMenu():
 
 if __name__ == "__main__":
 	thread.start_new_thread(ListenToSocket, ())
-	MakeMainMenu()
-	while 1:
-		Input(raw_input().rstrip())
+	if GUI_FLAG == 1:
+		MakeMainMenu()
+	else:
+		while 1:
+			Input(raw_input().rstrip())
 		
 
