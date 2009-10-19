@@ -242,8 +242,11 @@ def ListenToSocket():
 
 			if data[:7] == r'\pubkey':
 				global PubKey_OtherGuy, PubKey_string
+				if len(PubKey_OtherGuy) != 0:
+					continue
 				PubKey_OtherGuy = tuple(map(int, data[8:-1].split(',')))
 				try:
+
 					e = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 					e.sendto('\pubkey'+PubKey_string, (addr[0], PORT))
 					e.close()
@@ -263,25 +266,6 @@ def ListenToSocket():
 					continue
 					
 				PrintToScreen(NICKNAME_DICT[addr[0]] + '**: ' + str(data))
-
-
-				while 1:
-					EInput = GetInput()
-					try:
-						EEInput = encrypt(toBytes(EInput))
-					except:
-						PrintToScreen('You didnt get a Public Key from the "other guy"')
-						break
-					if EInput[:5] == r'\quit':
-						break
-					try:
-						d = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-
-						d.sendto('\encrypted'+ EEInput, (addr[0], PORT))
-						d.close()
-					except:
-						PrintToScreen('Could not send encrypted message to1: ' + addr[0])
-						break
 
 				continue
 
