@@ -89,12 +89,12 @@ PubKey_string = k[3]
 def encrypt(string):
 	global PubKey_OtherGuy
 	if len(PubKey_OtherGuy) == 0: return;
-	ciphertext = RSA.rsa(string, PubKey_OtherGuy, None)
+	ciphertext = RSA.rsa(int(string), PubKey_OtherGuy, None)
 	return str(ciphertext)
 
 def decrypt(string):
 	global PrivateKey
-	cleartext = RSA.rsa(string, None, PrivateKey, decrypt=True)
+	cleartext = RSA.rsa(int(string), None, PrivateKey, decrypt=True)
 	return str(cleartext)
 		
 
@@ -212,8 +212,8 @@ def ListenToSocket():
 				PubKey_OtherGuy = tuple(map(int, data[8:-1].split(',')))
 
 
-			if data[:10] == r'\encrypted':
-				data = decrypt(data)
+			if data[:9] == r'encrypted':
+				data = decrypt(data[10:])
 				PrintToScreen(NICKNAME_DICT[addr[0]] + '**: ' + str(data))
 
 				try:
@@ -233,7 +233,7 @@ def ListenToSocket():
 					try:
 						d = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-						d.sendto('\encrypted'+ EEInput, (addr[0], PORT))
+						d.sendto('encrypted'+ EEInput, (addr[0], PORT))
 						d.close()
 					except:
 						PrintToScreen('Could not send encrypted message to1: ' + addr[0])
@@ -295,7 +295,7 @@ def Input(input_string):
 				return 0
 			try:
 				d = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-				d.sendto(r'\encrypted'+ EEInput, (input_string[6:], PORT))
+				d.sendto(r'encrypted'+ EEInput, (input_string[6:], PORT))
 				d.close()
 			except:
 				PrintToScreen('Could not send encrypted message to2: ' + input_string[6:])
