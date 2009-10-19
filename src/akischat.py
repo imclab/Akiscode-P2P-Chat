@@ -47,6 +47,8 @@ import os, thread, socket, traceback, urllib, sys, getopt
 
 import RSA # Custom Lib
 
+from struct import unpack
+
 #-------------------CONSTANTS-------------------------
 
 def usage():
@@ -116,7 +118,7 @@ def encrypt(string):
 		raise ValueError
 	ciphertext = []
 	for temp in string:
-		ciphertext.append(RSA.rsa(temp, PubKey, None))
+		ciphertext.append(RSA.rsa(temp, PubKey_OtherGuy, None))
 	ciphertext_string = TupleToString(tuple(ciphertext))
 	return ciphertext_string
 
@@ -239,26 +241,29 @@ def ListenToSocket():
 				continue
 
 			if data[:7] == r'\pubkey':
-				global PubKey_OtherGuy
+				global PubKey_OtherGuy, PubKey_string
 				PubKey_OtherGuy = tuple(map(int, data[8:-1].split(',')))
+				try:
+					e = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+					e.sendto('\pubkey'+PubKey_string, (addr[0], PORT))
+					e.close()
+				except:
+	
+					dbg(str(('\pubkey'+ PubKey_string, addr[0], PORT)))
+					PrintToScreen('Could not send to: ' + addr[0])
+				continue				
 
 
 			if data[:10] == r'\encrypted':
 				try:
-					data= decrypt(data[11:])
+					data= decrypt(data[10:])
 				except:
+					PrintToScreen('Cannot decrypt message')
+					traceback.print_exc()
 					continue
 					
 				PrintToScreen(NICKNAME_DICT[addr[0]] + '**: ' + str(data))
 
-				try:
-					d = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-					d.sendto('\pubkey'+PubKey_string, (addr[0], PORT))
-					d.close()
-				except:
-
-					print str('\pubkey'+ PubKey_string, addr[0], PORT)
-					PrintToScreen('Could not re-send to: ' + addr[0])
 
 				while 1:
 					EInput = GetInput()
@@ -333,9 +338,9 @@ def Input(input_string):
 			if EInput[:5] == r'\quit':
 				return 0
 			try:
-				d = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-				d.sendto(r'\encrypted'+ EEInput, (input_string[6:], PORT))
-				d.close()
+				e = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+				e.sendto(r'\encrypted'+ EEInput, (input_string[6:], PORT))
+				e.close()
 			except:
 				PrintToScreen('Could not send encrypted message to2: ' + input_string[6:])
 				traceback.print_exc()
