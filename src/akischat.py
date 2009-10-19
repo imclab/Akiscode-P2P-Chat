@@ -86,15 +86,46 @@ PrivateKey = (k[0], k[2])
 PubKey_OtherGuy = () # The public key of the other guy, initially set to 0
 PubKey_string = k[3]
 
+def toBytes(value):
+	"Turns a string into a list of byte values"
+	return unpack('%sB' % len(value), value)
+	
+
+def TupleToString(temp_tuple):
+	temp_string = ''
+	for k in temp_tuple:
+		temp_string = temp_string + str(k) + '|' 
+		
+	return temp_string
+
+def StringToTuple(string):
+	temp_tuple = tuple(string.split('|'))
+	temp_list = []
+	for k in temp_tuple:
+		if k == '':
+			continue
+		temp_list.append(int(k))
+	
+	return tuple(temp_list)
+	
+
+
 def encrypt(string):
 	global PubKey_OtherGuy
-	if len(PubKey_OtherGuy) == 0: return;
-	ciphertext = RSA.rsa(int(string), PubKey_OtherGuy, None)
-	return str(ciphertext)
+	if len(PubKey_OtherGuy) == 0: 
+		raise ValueError
+	ciphertext = []
+	for temp in string:
+		ciphertext.append(RSA.rsa(temp, PubKey, None))
+	ciphertext_string = TupleToString(tuple(ciphertext))
+	return ciphertext_string
 
 def decrypt(string):
 	global PrivateKey
-	cleartext = RSA.rsa(int(string), None, PrivateKey, decrypt=True)
+	cleartext = ''
+	tuple_string = StringToTuple(string)
+	for temp in tuple_string:
+		cleartext = cleartext + chr(RSA.rsa(temp, None, PrivateKey, decrypt=True))
 	return str(cleartext)
 		
 
@@ -212,8 +243,12 @@ def ListenToSocket():
 				PubKey_OtherGuy = tuple(map(int, data[8:-1].split(',')))
 
 
-			if data[:9] == r'encrypted':
-				data = decrypt(data[10:])
+			if data[:10] == r'\encrypted':
+				try:
+					data= decrypt(data[11:])
+				except:
+					continue
+					
 				PrintToScreen(NICKNAME_DICT[addr[0]] + '**: ' + str(data))
 
 				try:
@@ -227,19 +262,23 @@ def ListenToSocket():
 
 				while 1:
 					EInput = GetInput()
-					EEInput = str(encrypt(EInput))
+					try:
+						EEInput = encrypt(toBytes(EInput))
+					except:
+						PrintToScreen('You didnt get a Public Key from the "other guy"')
+						break
 					if EInput[:5] == r'\quit':
-						return 0
+						break
 					try:
 						d = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-						d.sendto('encrypted'+ EEInput, (addr[0], PORT))
+						d.sendto('\encrypted'+ EEInput, (addr[0], PORT))
 						d.close()
 					except:
 						PrintToScreen('Could not send encrypted message to1: ' + addr[0])
-						return 0
+						break
 
-				return 0
+				continue
 
 			PrintToScreen(NICKNAME_DICT[addr[0]] + ': ' + str(data))
 
@@ -285,17 +324,17 @@ def Input(input_string):
 			d.close()
 		except:
 
-			print str('\pubkey'+ PubKey_string, input_string[6:], PORT)
+			dbg(str(('\pubkey'+ PubKey_string, input_string[6:], PORT)))
 			PrintToScreen('Could not send to: ' + input_string[6:])
 			return 0
 		while 1:
 			EInput = GetInput()
-			EEInput = str(encrypt(EInput))
+			EEInput = encrypt(toBytes(EInput))
 			if EInput[:5] == r'\quit':
 				return 0
 			try:
 				d = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-				d.sendto(r'encrypted'+ EEInput, (input_string[6:], PORT))
+				d.sendto(r'\encrypted'+ EEInput, (input_string[6:], PORT))
 				d.close()
 			except:
 				PrintToScreen('Could not send encrypted message to2: ' + input_string[6:])
