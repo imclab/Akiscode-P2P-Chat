@@ -244,7 +244,7 @@ def ListenToSocket():
 				global PubKey_OtherGuy, PubKey_string
 				if len(PubKey_OtherGuy) != 0:
 					continue
-				PubKey_OtherGuy = tuple(map(int, data[8:-1].split(',')))
+				PubKey_OtherGuy = tuple(map(int, data[8:-1].split(','))) # Take string and turn it into a tuple full of ints
 				try:
 
 					e = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -253,7 +253,7 @@ def ListenToSocket():
 				except:
 	
 					dbg(str(('\pubkey'+ PubKey_string, addr[0], PORT)))
-					PrintToScreen('Could not send to: ' + addr[0])
+					PrintToScreen('Could not send Public Key to: ' + addr[0])
 				continue				
 
 
@@ -295,6 +295,7 @@ def Input(input_string):
 	global vlock
 	global PubKey
 	global PubKey_string
+	global PubKey_OtherGuy
 	global PORT
 
 	if input_string[:4] == r'\add':
@@ -318,15 +319,20 @@ def Input(input_string):
 			return 0
 		while 1:
 			EInput = GetInput()
-			EEInput = encrypt(toBytes(EInput))
+			try:
+				EEInput = encrypt(toBytes(EInput))
+			except:
+				PrintToScreen('Could not encrypt input')
+				return 0
 			if EInput[:5] == r'\quit':
+				PubKey_OtherGuy = ()
 				return 0
 			try:
 				e = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 				e.sendto(r'\encrypted'+ EEInput, (input_string[6:], PORT))
 				e.close()
 			except:
-				PrintToScreen('Could not send encrypted message to2: ' + input_string[6:])
+				PrintToScreen('Could not send encrypted message to: ' + input_string[6:])
 				traceback.print_exc()
 				return 0
 		return 0
