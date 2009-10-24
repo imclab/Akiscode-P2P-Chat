@@ -291,7 +291,7 @@ def ListenToSocket():
 						vlock.release() # Release lock
 				continue
 
-			if data[:10] == r'\nick_data':
+			if data[:10] == r'\nick_data': # Someone changed their nickname and sent their nickname sync data
 				dbg('got nick sync data')
 				TEMP_NICKNAME_LIST = str(data[11:]).split(';')
 				dbg('TEMP_NICKNAME_LIST = ' + str(TEMP_NICKNAME_LIST))
