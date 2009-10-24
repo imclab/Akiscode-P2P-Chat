@@ -110,7 +110,21 @@ def StringToTuple(string):
 	
 	return tuple(temp_list)
 	
-
+def sign(string):
+	global PrivateKey
+	ciphertext = []
+	for temp in string:
+		ciphertext.append(RSA.rsa(temp, PrivateKey, None))
+	ciphertext_string = TupleToString(tuple(ciphertext))
+	return ciphertext_string
+	
+def unsign(string):
+	global PubKey_OtherGuy
+	cleartext = ''
+	tuple_string = StringToTuple(string)
+	for temp in tuple_string:
+		cleartext = cleartext + chr(RSA.rsa(temp, None, PubKey_OtherGuy, decrypt=True))
+	return str(cleartext)
 
 def encrypt(string):
 	global PubKey_OtherGuy
@@ -259,9 +273,15 @@ def ListenToSocket():
 
 			if data[:10] == r'\encrypted':
 				try:
-					data= decrypt(data[10:])
+					data = decrypt(data[10:])
 				except:
 					PrintToScreen('Cannot decrypt message')
+					traceback.print_exc()
+					continue
+				try:
+					data = unsign(data)
+				except:
+					PrintToScreen('Cannot unsign message.  The message was most likely not sent by the person you think it is (Man in the Middle attack possible)')
 					traceback.print_exc()
 					continue
 					
@@ -320,10 +340,16 @@ def Input(input_string):
 		while 1:
 			EInput = GetInput()
 			try:
+				EInput = sign(toBytes(EInput))
+			except:
+				PrintToScreen('Could not sign input')
+				return 0
+			try:
 				EEInput = encrypt(toBytes(EInput))
 			except:
 				PrintToScreen('Could not encrypt input')
 				return 0
+				
 			if EInput[:5] == r'\quit':
 				PubKey_OtherGuy = ()
 				return 0
