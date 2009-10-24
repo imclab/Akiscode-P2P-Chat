@@ -7,10 +7,8 @@
 # Language: Python
 # Usage: 
 #	python akischat.py 
-#		 OR
-#       python akischat.py --GUI
 # Dependencies:
-#	python-tk package - for GUI
+#	---
 # Thanks to:
 #	---
 # Disclaimer:
@@ -54,8 +52,8 @@ from struct import unpack
 def usage():
 	print 'Usage'
 
-# This is a wrapper function so we can abstract away how we print the characters, either to the 
-#   command line or the GUI
+# This was going to be a wrapper function so we could use a GUI but the GUI idea fell through
+#   and i'm to lazy to change it
 def PrintToScreen(str):
 	print str
 
@@ -71,14 +69,6 @@ PORT = 7721 # Port to send packets on
 
 DEBUG = 1
 
-GUI_FLAG = 0
-
-
-try:
-	if sys.argv[1] == '--GUI' or sys.argv[1] == '-g':
-		GUI_FLAG = 1
-except:
-	print 'Command-Line Verson'
 
 PrintToScreen('Making RSA Key...')
 k = RSA.keygen(61, 53)
@@ -146,18 +136,6 @@ def decrypt(string):
 		
 
 
-#----------------------GUI STUFF----------------------
-
-from Tkinter import *
-import os, platform
-
-title = 'Akiscode Chat'
-version = '100'
-versionstring = 'v1.0.0'
-
-
-#-----------------------------------------------------
-
 def GetInput():
 	data = raw_input().rstrip()
 	return str(data)
@@ -194,10 +172,8 @@ def ListenToSocket():
 	global IP_ADDRESS_LIST
 	global vlock
 	global NICKNAME_DICT
-	global GUI_FLAG
 
-	if GUI_FLAG != 1:
-		PrintToScreen(('Nick: '+NICKNAME_DICT[LOCAL_IP], 'Local IP:'+LOCAL_IP, 'Port:'+str(PORT), IP_ADDRESS_LIST))
+	PrintToScreen(('Nick: '+NICKNAME_DICT[LOCAL_IP], 'Local IP:'+LOCAL_IP, 'Port:'+str(PORT), IP_ADDRESS_LIST))
 
 	while 1:
 		d = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -276,13 +252,15 @@ def ListenToSocket():
 					data = decrypt(data[10:])
 				except:
 					PrintToScreen('Cannot decrypt message')
-					traceback.print_exc()
+					if DEBUG == 1:
+						traceback.print_exc()
 					continue
 				try:
 					data = unsign(data)
 				except:
 					PrintToScreen('Cannot unsign message.  The message was most likely not sent by the person you think it is (Man in the Middle attack possible)')
-					traceback.print_exc()
+					if DEBUG == 1:
+						traceback.print_exc()
 					continue
 					
 				PrintToScreen(NICKNAME_DICT[addr[0]] + '**: ' + str(data))
@@ -328,9 +306,8 @@ def Input(input_string):
 			return 0
 
 	if input_string[:5] == r'\eadd': # Encrypted Add
-		if GUI_FLAG == 0:
-			print '***Encrypted Mode***'
-			print 'Sending _only_ to ' + input_string[6:] 
+		print '***Encrypted Mode***'
+		print 'Sending _only_ to ' + input_string[6:] 
 		try:
 			d = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 			d.sendto('\pubkey'+PubKey_string, (input_string[6:], PORT))
@@ -339,8 +316,7 @@ def Input(input_string):
 
 			dbg(str(('\pubkey'+ PubKey_string, input_string[6:], PORT)))
 			PrintToScreen('Could not send to: ' + input_string[6:])
-			if GUI_FLAG == 0:
-				print '***END Encrypted Mode***'
+			print '***END Encrypted Mode***'
 			return 0
 		while 1:
 			EInput = GetInput()
@@ -348,27 +324,24 @@ def Input(input_string):
 				EInput = sign(toBytes(EInput))
 			except:
 				PrintToScreen('Could not sign input')
-				if GUI_FLAG == 0:
-					print '***END Encrypted Mode***'
+				print '***END Encrypted Mode***'
 				return 0
 			try:
 				EEInput = encrypt(toBytes(EInput))
 			except ValueError:
 				PrintToScreen('You have not received a public key from the person you are connecting.  You probably entered the IP address wrong')
-				if GUI_FLAG == 0:
-					print '***END Encrypted Mode***'
+				print '***END Encrypted Mode***'
 				return 0
 			except:
 				PrintToScreen('Could not encrypt input')
-				traceback.print_exc()
-				if GUI_FLAG == 0:
-					print '***END Encrypted Mode***'
+				if DEBUG == 1:
+					traceback.print_exc()
+				print '***END Encrypted Mode***'
 				return 0
 				
 			if EInput[:5] == r'\quit':
 				PubKey_OtherGuy = ()
-				if GUI_FLAG == 0:
-					print '***END Encrypted Mode***'
+				print '***END Encrypted Mode***'
 				return 0
 			try:
 				e = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -376,9 +349,9 @@ def Input(input_string):
 				e.close()
 			except:
 				PrintToScreen('Could not send encrypted message to: ' + input_string[6:])
-				traceback.print_exc()
-				if GUI_FLAG == 0:
-					print '***END Encrypted Mode***'
+				if DEBUG == 1:
+					traceback.print_exc()
+				print '***END Encrypted Mode***'
 				return 0
 		return 0
 
@@ -420,10 +393,7 @@ def MakeMainMenu():
 
 if __name__ == "__main__":
 	thread.start_new_thread(ListenToSocket, ())
-	if GUI_FLAG == 1:
-		MakeMainMenu()
-	else:
-		while 1:
-			Input(GetInput())
+	while 1:
+		Input(GetInput())
 		
 
