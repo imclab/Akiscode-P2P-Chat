@@ -328,6 +328,9 @@ def Input(input_string):
 			return 0
 
 	if input_string[:5] == r'\eadd': # Encrypted Add
+		if GUI_FLAG == 0:
+			print '***Encrypted Mode***'
+			print 'Sending _only_ to ' + input_string[6:] 
 		try:
 			d = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 			d.sendto('\pubkey'+PubKey_string, (input_string[6:], PORT))
@@ -336,6 +339,8 @@ def Input(input_string):
 
 			dbg(str(('\pubkey'+ PubKey_string, input_string[6:], PORT)))
 			PrintToScreen('Could not send to: ' + input_string[6:])
+			if GUI_FLAG == 0:
+				print '***END Encrypted Mode***'
 			return 0
 		while 1:
 			EInput = GetInput()
@@ -343,15 +348,27 @@ def Input(input_string):
 				EInput = sign(toBytes(EInput))
 			except:
 				PrintToScreen('Could not sign input')
+				if GUI_FLAG == 0:
+					print '***END Encrypted Mode***'
 				return 0
 			try:
 				EEInput = encrypt(toBytes(EInput))
+			except ValueError:
+				PrintToScreen('You have not received a public key from the person you are connecting.  You probably entered the IP address wrong')
+				if GUI_FLAG == 0:
+					print '***END Encrypted Mode***'
+				return 0
 			except:
 				PrintToScreen('Could not encrypt input')
+				traceback.print_exc()
+				if GUI_FLAG == 0:
+					print '***END Encrypted Mode***'
 				return 0
 				
 			if EInput[:5] == r'\quit':
 				PubKey_OtherGuy = ()
+				if GUI_FLAG == 0:
+					print '***END Encrypted Mode***'
 				return 0
 			try:
 				e = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -360,6 +377,8 @@ def Input(input_string):
 			except:
 				PrintToScreen('Could not send encrypted message to: ' + input_string[6:])
 				traceback.print_exc()
+				if GUI_FLAG == 0:
+					print '***END Encrypted Mode***'
 				return 0
 		return 0
 
