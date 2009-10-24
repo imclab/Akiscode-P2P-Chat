@@ -41,8 +41,7 @@
 # Copyright (C) 2009 Stephen Akiki. All rights reserved.
 #-------------------------------------------------------------------------------------------------
 
-import os, thread, socket, traceback, urllib, sys, getopt
-
+import os, thread, socket, traceback, urllib, sys
 import RSA # Custom Lib
 
 from struct import unpack
@@ -379,17 +378,7 @@ def Input(input_string):
 
 
 
-def MakeMainMenu():
-	global LOCAL_IP
-	root = Tk()
-	root.title(title + '(' + versionstring + ') - Stephen Akiki')
-	root.minsize(500, 400)
 
-	w = Label(root, text=LOCAL_IP)
-	w.grid(row=0)
-
-
-	root.mainloop()
 
 if __name__ == "__main__":
 	thread.start_new_thread(ListenToSocket, ())
