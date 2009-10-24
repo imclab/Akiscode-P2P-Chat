@@ -66,7 +66,7 @@ NICKNAME_DICT = {LOCAL_IP:LOCAL_IP}
 
 PORT = 7721 # Port to send packets on
 
-DEBUG = 1
+DEBUG = 0
 
 
 PrintToScreen('Making RSA Key...')
