@@ -1,30 +1,48 @@
-"""
-RSA public key cipher
-
->>> k = keygen(61, 53)
->>> public = (k[0], k[1])
->>> private = (k[0], k[2])
->>> ciphertext = rsa(123, public, None)
->>> rsa(ciphertext, None, private, decrypt=True)
-123
-"""
+#-------------------------------------------------------------------------------------------------
+# Name: Akiscode Chat
+# Author: Stephen Akiki
+# Website: http://akiscode.com
+# Language: Python
+# Usage: 
+#	python akischat.py 
+# Dependencies:
+#	---
+# Thanks to:
+#	---
+# Disclaimer:
+#	By using this program you do so at your own risk. I assume no liability
+#	for anything that happens to you because you used this program.
+#	
+#	Enjoy
+#
+# License - GNU GPL (See LICENSE.txt for full text):
+#-------------------------------------------------------------------------------------------------
+#    If you want to use this code (in compliance with the GPL) then you should
+#    include this somewhere in your code comments header:
+#
+#    Thanks to Stephen Akiki (http://akiscode.com/code/chat) for peer-to-peer chat code
+#-------------------------------------------------------------------------------------------------
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#-------------------------------------------------------------------------------------------------
+# Copyright (C) 2009 Stephen Akiki. All rights reserved.
+#-------------------------------------------------------------------------------------------------
 
 import math
 import random
 
 def eeuclid(a, n, debug=False):
-    """Finds the GCD or multiplicative inverse of a number mod n
-    
-    Returns a two-element sequence in the format 
-        (r, i)
-    where r either the gcd or inverse, and i is True if result is
-    inverse, False if result is gcd.
-
-    >>> eeuclid(24141, 40902)
-    (3.0, False)
-    >>> eeuclid(7, 2311)
-    (-330.0, True)
-    """
     a1, a2, a3 = 1, 0, n
     b1, b2, b3 = 0, 1, a
     while b3 > 1:
@@ -42,33 +60,15 @@ def eeuclid(a, n, debug=False):
         return (a3, False)
 
 def totient(p, q):
-    """Returns the Euler totient of two numbers
 
-    >>> p = 7
-    >>> q = 5
-    >>> totient(p, q)
-    24
-    """
+
     return (p - 1) * (q - 1)
 
 def coprime(t):
-    """Finds a possible coprime of a number
-
-    >>> p = coprime(23)
-    >>> eeuclid(p, 23)[1]
-    True
-    """
     nums = eratosthenes(t)
     return random.choice(nums)
 
 def eratosthenes(n):
-    """Generates a list of primes less than or equal to n
-
-    Uses the Sieve of Eratosthenes.
-
-    >>> eratosthenes(30)
-    [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
-    """
     nums = range(2, n)
     p = t = 2
     while p**2 <= n:
@@ -81,19 +81,6 @@ def eratosthenes(n):
     return nums
 
 def keygen(p, q, e=None):
-    """Generate a key pair from two distinct prime numbers
-
-    Returns a 4-element sequence in the following format:
-        (n, e, d, str)
-    where n is the modulo for the finite field, e is the
-    public key exponent and d is the multiplicative inverse.
-	str is a string consisting of (n,e,d).
-
-    e may be also provided as an optional parameter.
-
-    >>> keygen(61, 53, e=17)
-    (3233, 17, 2753)
-    """
     n = p * q
     t = totient(p, q)
     if e is None:
@@ -102,24 +89,6 @@ def keygen(p, q, e=None):
     return (n, e, d, str((n, e, d)))
 
 def rsa(message, public, private, decrypt=False):
-    """Encrypts or decrypts a message with RSA
-
-    The public and private key format is in
-        (n, k)
-    where n is the product of two primes and k is either the
-    public key exponent (for encryption) or it's multiplicative
-    inverse (for decryption)
-
-    Private key can be None for encryption since it is not used.
-    Likewise, public key can be None for decryption
-    
-    >>> public = (3233, 17)
-    >>> private = (3233, 2753)
-    >>> rsa(123, public, private)
-    855
-    >>> rsa(855, public, private, decrypt=True)
-    123
-    """
     if decrypt is False:
         return int(message**public[1] % public[0])
     else:
