@@ -60,8 +60,8 @@ Help:
               (use \ip to view this list)
 
 \eadd ip_addr  Starts a encrypted connection with one person 
-               (specified by ip_addr) Understand you will not
-               be able to message other people while in this
+               (specified by ip_addr) Understand you will only
+               be able to message this person while in this
                mode.
 
 \quit          Quits the current session.  If you are in encrypted
