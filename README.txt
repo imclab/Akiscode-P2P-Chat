@@ -7,6 +7,10 @@
 #	python akischat.py 
 #		 OR
 #       python akischat.py --GUI
+#
+#	akiscode_compact.py is the entire program in a single file (i.e. it is portable)
+#
+#
 # Dependencies:
 #	python-tk package - for GUI
 # Thanks to:
